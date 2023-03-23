@@ -19,7 +19,7 @@ namespace Infrastructure.Repositories
         void Update(Order entity);
         Task UpdateAsync(Order entity);
         void AddRange(IEnumerable<Order> entities);
-        Task<int> Remove(Order entity);
+        int Remove(Order entity);
         int RemoveRange(IEnumerable<Order> entities);
         Task<int> RemoveRangeAsync(IEnumerable<Order> entities);
     }

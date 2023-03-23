@@ -13,16 +13,23 @@ namespace PresentationLayer.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IProviderRepository _providerRepository;
+        private readonly IItemRepository _itemRepository;
 
         public OrderService(IOrderRepository orderRepository,
-            IProviderRepository providerRepository)
+            IProviderRepository providerRepository, IItemRepository itemRepository)
         {
             _orderRepository = orderRepository;
             _providerRepository = providerRepository;
+            _itemRepository = itemRepository;
         }
 
         public override POrder Save(POrder model)
         {
+            if (model.State is ModelState.Detached)
+            {
+                return base.Save(model);
+            }
+
             var provider = _providerRepository.GetByName(model.Provider);
             if (provider == null)
             {
@@ -36,10 +43,12 @@ namespace PresentationLayer.Services
 
             if (model.Items.Any(item => item.Name.Equals(model.Number)))
             {
-                throw new ArgumentException("Order number and order item name must be different");
+                throw new ArgumentException(
+                    "Order number and order item name must be different");
             }
 
-            if (model.State is ModelState.Added && _orderRepository.GetByNumberAndProvider(model.Number, provider.Id) != null)
+            if (model.State is ModelState.Added &&
+                _orderRepository.GetByNumberAndProvider(model.Number, provider.Id) != null)
             {
                 throw new ArgumentException("Order duplication");
             }
@@ -50,11 +59,6 @@ namespace PresentationLayer.Services
         public override List<POrder> GetFullByFilter<TEntityType>(
             DataFilter<Order, TEntityType> filter) =>
             _orderRepository.GetFullInfo(filter)
-                            //.Select(order =>
-                            //{
-                            //    order.Provider = new Provider(){Name = "PPPPPP"};
-                            //    return order;
-                            //})
                             .Convert()
                             .ToList();
 
@@ -88,9 +92,12 @@ namespace PresentationLayer.Services
 
         public override void Remove(POrder pOrder)
         {
-            var provider = _providerRepository.GetByName(pOrder.Provider);
-            var order = _orderRepository.GetByNumberAndProvider(pOrder.Number!, provider!.Id);
-            _orderRepository.Remove(order!);
+            var items = _itemRepository.Get(item => item.OrderId == pOrder.Id);
+            _itemRepository.RemoveRange(items);
+            _orderRepository.Remove(new Order()
+            {
+                Id = pOrder.Id
+            });
         }
         public POrder Create(string? number, string provider, IEnumerable<PItem> items)
         {

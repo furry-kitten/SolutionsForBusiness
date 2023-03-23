@@ -20,7 +20,7 @@ namespace PresentationLayer.Services
 
         public async Task<PProvider> Create(string name)
         {
-            var existsProvider = _providerRepository.Get<Provider>(provider =>
+            var existsProvider = _providerRepository.Get(provider =>
                                                         string.IsNullOrWhiteSpace(provider.Name) ==
                                                         false &&
                                                         provider.Name.Equals(name,
@@ -68,7 +68,7 @@ namespace PresentationLayer.Services
 
         public override async void Remove(PProvider model)
         {
-            await _providerRepository.Remove(new Provider
+            _providerRepository.Remove(new Provider
             {
                 Id = model.Id
             });

@@ -162,5 +162,33 @@ namespace SolutionsForBusiness.Controllers
             _providerService.Save(provider);
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
+
+        public IActionResult RemoveItem(int itemId, int orderId)
+        {
+            Item model = new()
+            {
+                Id = itemId
+            };
+
+            _itemService.Detached(model);
+            _itemService.Save(model);
+
+            return RedirectToAction(nameof(EditOrder), new
+            {
+                orderId
+            });
+        }
+
+        public IActionResult RemoveOrder(int orderId)
+        {
+            var order = new Order()
+            {
+                Id = orderId
+            };
+
+            _orderService.Detached(order);
+            _orderService.Save(order);
+            return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
     }
 }

@@ -31,7 +31,7 @@ namespace Infrastructure.Repositories
         public virtual IEnumerable<TEntity> Get<TType>(DataFilter<TEntity, TType> filter) =>
             WriteEntity.AsNoTracking().AsEnumerable().Where(filter.Filter);
 
-        public virtual IEnumerable<TEntity> Get<TType>(Expression<Func<TEntity, bool>> predicate) =>
+        public virtual IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> predicate) =>
             WriteEntity.AsNoTracking().Where(predicate);
 
         public virtual TEntity? GetAsync(int id) =>
@@ -93,10 +93,10 @@ namespace Infrastructure.Repositories
             Context.DetachAllEntries(entities);
         }
 
-        public virtual async Task<int> Remove(TEntity entity)
+        public virtual int Remove(TEntity entity)
         {
             WriteEntity.Remove(entity);
-            var count = await Context.SaveChangesAsync();
+            var count = Context.SaveChanges();
             Context.Detach(entity);
             return count;
         }

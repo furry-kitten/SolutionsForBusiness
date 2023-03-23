@@ -47,8 +47,9 @@
                     <td>
                         @data.Unit
                     </td>
-                    <td border>
+                    <td>
                         <a class="btn btn-primary mx-2" asp-controller="Edit" asp-action="EditItem" asp-route-itemId="@data.Id">Edit</a>
+                        <a class="btn btn-primary mx-2 bg-danger" asp-controller="Edit" asp-action="RemoveItem" asp-route-itemId="@data.Id" asp-route-orderId="@Model.OrderId">Remove</a>
                     </td>
                 </tr>
             }

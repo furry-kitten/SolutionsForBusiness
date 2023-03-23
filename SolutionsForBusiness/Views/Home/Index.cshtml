@@ -19,7 +19,7 @@
 
             <div class="form-group">
                 <label asp-for="LastDateFilter">Last Date</label>
-                <input name="LastDateFilter" asp-for="LastDateFilter" value="@Model.LastDateFilter"/>
+                <input name="LastDateFilter" asp-for="LastDateFilter" value="@Model.LastDateFilter" />
             </div>
             <div class="form-group">
                 <label asp-for="FirstDateFilter">First Date</label>
@@ -45,50 +45,51 @@
             </div>
             <!--<a class="btn btn-primary" asp-controller="Home" asp-action="FilterIndex" asp-route-filters="@Model.LastDateFilter">Filter</a>-->
             <input type="submit" value="Filter" class="btn btn-primary" />
-        </form>
-        @if (Model.History?.Any() != true)
-        {
-            <p>
-                No data
-            </p>
-        }
-        else
-        {
-            //<table style="width:100%">
-            <table class="table caption-top">
-                <tr>
-                    <th width="10%">@nameof(Order.Number)</th>
-                    <th width="20%">@nameof(Order.Provider)</th>
-                    <th>@nameof(Order.Date)</th>
-                    <th width="10%">Items count</th>
-                    <th width="5%"></th>
-                </tr>
-                <tr>
-                    <td colspan="5">
-                        <a class="btn btn-primary" asp-controller="Edit" asp-action="EditOrder" asp-area="">Create order</a>
-                    </td>
-                </tr>
-                @foreach (var data in Model.History)
-                {
+            @if (Model.History?.Any() != true)
+            {
+                <p>
+                    No data
+                </p>
+            }
+            else
+            {
+                //<table style="width:100%">
+                <table class="table caption-top">
                     <tr>
-                        <td>
-                            @data.Number
-                        </td>
-                        <td>
-                            @data.Provider
-                        </td>
-                        <td>
-                            @data.Date
-                        </td>
-                        <td>
-                            @data.Items.Count()
-                        </td>
-                        <td border>
-                            <a class="btn btn-primary mx-2" asp-controller="Edit" asp-action="EditOrder" asp-route-orderId="@data.Id">Edit</a>
+                        <th width="10%">@nameof(Order.Number)</th>
+                        <th width="20%">@nameof(Order.Provider)</th>
+                        <th>@nameof(Order.Date)</th>
+                        <th width="10%">Items count</th>
+                        <th width="5%"></th>
+                    </tr>
+                    <tr>
+                        <td colspan="5">
+                            <a class="btn btn-primary" asp-controller="Edit" asp-action="EditOrder" asp-area="">Create order</a>
                         </td>
                     </tr>
-                }
-            </table>
-        }
+                    @foreach (var data in Model.History)
+                    {
+                        <tr>
+                            <td>
+                                @data.Number
+                            </td>
+                            <td>
+                                @data.Provider
+                            </td>
+                            <td>
+                                @data.Date
+                            </td>
+                            <td>
+                                @data.Items.Count()
+                            </td>
+                            <td border>
+                                <a class="btn btn-primary mx-2" asp-controller="Edit" asp-action="EditOrder" asp-route-orderId="@data.Id">Edit</a>
+                                <a class="btn btn-primary mx-2 bg-danger" asp-controller="Edit" asp-action="RemoveOrder" asp-route-orderId="@data.Id">Remove</a>
+                            </td>
+                        </tr>
+                    }
+                </table>
+            }
+        </form>
     }
 </div>
