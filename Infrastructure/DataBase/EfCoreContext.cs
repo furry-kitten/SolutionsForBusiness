@@ -7,10 +7,8 @@ namespace Infrastructure.DataBase
     {
         public EfCoreContext(DbContextOptions<EfCoreContext> options) : base(options)
         {
-            if(Database.EnsureCreated())
-            {
-                Database.Migrate();
-            }
+            Database.Migrate();
+            Database.EnsureCreated();
         }
 
         public DbSet<Order> Orders { get; set; }
