@@ -51,9 +51,14 @@ namespace PresentationLayer.Services
             GetByFilter<TEntityType>(DataFilter<Provider, TEntityType> filter) =>
             _providerRepository.Get(filter).Convert().ToList();
 
-        public override async void Add(PProvider model)
+        public override void Add(PProvider model)
         {
-            await _providerRepository.AddAsync(model.Convert());
+            if (_providerRepository.GetByName(model.Name) != null)
+            {
+                return;
+            }
+
+            _providerRepository.Add(model.Convert());
         }
 
         public override void Update(PProvider order)

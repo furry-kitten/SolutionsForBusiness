@@ -1,0 +1,22 @@
+﻿@model string
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>title</title>
+</head>
+<body>
+    <form asp-action="SaveProvider">
+        <div class="form-group">
+            <label>Provider Name</label>
+            <input name="providerName" />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</body>
+</html>

@@ -1,9 +1,8 @@
-﻿using Infrastructure.DataBase.Models;
-using Infrastructure.Utils;
+﻿using Infrastructure.Utils;
 using Microsoft.AspNetCore.Mvc;
+using PresentationLayer.Models;
 using PresentationLayer.Services;
 using PresentationLayer.ViewModels;
-using Order = PresentationLayer.Models.Order;
 
 namespace SolutionsForBusiness.Controllers
 {
@@ -33,13 +32,13 @@ namespace SolutionsForBusiness.Controllers
                 _orderService.GetDefaultModel();
 
             var byFilter = orderId == null ?
-                new List<PresentationLayer.Models.Item>() :
-                _itemService.GetByFilter(new DataFilter<Item, int>
+                new List<Item>() :
+                _itemService.GetByFilter(new DataFilter<Infrastructure.DataBase.Models.Item, int>
                 {
                     Conditions =
                     {
-                        new Condition<int>(nameof(Item.OrderId), orderId.Value,
-                            tuple => tuple.entityValue == tuple.conditionValue)
+                        new Condition<int>(nameof(Infrastructure.DataBase.Models.Item.OrderId),
+                            orderId.Value, tuple => tuple.entityValue == tuple.conditionValue)
                     }
                 });
 
@@ -76,7 +75,7 @@ namespace SolutionsForBusiness.Controllers
             return View(model);
         }
 
-        public IActionResult EditItem(PresentationLayer.Models.Item item)
+        public IActionResult EditItem(Item item)
         {
             EditItemViewModel model = new()
             {
@@ -138,10 +137,30 @@ namespace SolutionsForBusiness.Controllers
                 _itemService.Save(item);
             }
 
-            return RedirectToAction(nameof(EditOrder), new
+            var routeValues = new
             {
-                orderId = orderId
-            });
+                orderId
+            };
+
+            return RedirectToAction(nameof(EditOrder), routeValues);
+        }
+
+        public IActionResult EditProvider()
+        {
+            return View();
+        }
+
+        public IActionResult SaveProvider(string providerName)
+        {
+            if (string.IsNullOrWhiteSpace(providerName))
+            {
+                return BadRequest("Empty name");
+            }
+
+            var provider = _providerService.GetDefaultModel();
+            provider.Name = providerName;
+            _providerService.Save(provider);
+            return RedirectToAction(nameof(HomeController.Index), "Home");
         }
     }
 }
