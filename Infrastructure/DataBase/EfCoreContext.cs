@@ -5,41 +5,32 @@ namespace Infrastructure.DataBase
 {
     public class EfCoreContext : DbContext
     {
-        //public EfCoreContext()
-        //{
-        //    Database.EnsureDeleted();
-        //    Database.EnsureCreated();
-        //}
-
         public EfCoreContext(DbContextOptions<EfCoreContext> options) : base(options)
         {
-            Database.EnsureCreated();
+            if(Database.EnsureCreated())
+            {
+                Database.Migrate();
+            }
         }
 
-        //public static EfCoreContext Context { get; } = new();
-
-        public DbSet<Order> Order { get; set; }
-        public DbSet<OrderItem> Items { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<Item> Items { get; set; }
         public DbSet<Provider> Providers { get; set; }
-
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    base.OnConfiguring(optionsBuilder);
-
-        //    optionsBuilder.UseSqlServer(Constants.CreatingString);
-        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Order>()
+                        .ToTable(nameof(Order))
                         .Property(model => model.Id)
                         .ValueGeneratedOnAdd();
 
-            modelBuilder.Entity<OrderItem>()
+            modelBuilder.Entity<Item>()
+                        .ToTable("OrderItem")
                         .Property(model => model.Id)
                         .ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Provider>()
+                        .ToTable(nameof(Provider))
                         .Property(model => model.Id)
                         .ValueGeneratedOnAdd();
 
@@ -51,14 +42,17 @@ namespace Infrastructure.DataBase
                         }, "OrderNumberProviderId_Index")
                         .IsUnique();
 
-            modelBuilder.Entity<OrderItem>()
-                        .Property(item => item.Quantity)
-                        .HasPrecision(18, 3);
+            modelBuilder.Entity<Item>().Property(item => item.Quantity).HasPrecision(18, 3);
 
             modelBuilder.Entity<Provider>()
                         .HasMany(provider => provider.Orders)
                         .WithOne(order => order.Provider)
                         .HasForeignKey(order => order.ProviderId);
+
+            //modelBuilder.Entity<Order>()
+            //            .HasOne(order => order.Provider)
+            //            .WithMany(provider => provider.Orders)
+            //            .HasForeignKey(order => order.ProviderId);
 
             modelBuilder.Entity<Order>()
                         .HasMany(order => order.Items)

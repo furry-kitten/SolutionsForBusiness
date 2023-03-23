@@ -1,8 +1,94 @@
-﻿@{
+﻿@using PresentationLayer.Models
+@model PresentationLayer.ViewModels.HistoryViewModel
+@{
     ViewData["Title"] = "Home Page";
 }
-
+@*
+<style>
+    table, th {
+        border: 1px solid black;
+    }
+</style>
+*@
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    @*<h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>*@
+    @{
+        //<button formaction="/Privacy">Create order</button>
+        <form method="get" asp-action="Index">
+
+            <div class="form-group">
+                <label asp-for="LastDateFilter">Last Date</label>
+                <input name="LastDateFilter" asp-for="LastDateFilter" value="@Model.LastDateFilter"/>
+            </div>
+            <div class="form-group">
+                <label asp-for="FirstDateFilter">First Date</label>
+                <input name="@nameof(HistoryViewModel.FirstDateFilter)" asp-for="FirstDateFilter" value="@Model.FirstDateFilter" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Providers">Providers</label>
+                <select name="@nameof(HistoryViewModel.ProvidersIdFilter)" asp-for="ProvidersIdFilter">
+                    @foreach (var provider in Model.Providers)
+                    {
+                        <option value="@provider.Id">@provider.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="NumberFilter">Number</label>
+                <select name="@nameof(HistoryViewModel.NumberFilter)" asp-for="NumberFilter">
+                    @foreach (var number in Model.AllNumbers.Distinct().ToArray())
+                    {
+                        <option multiple="multiple" value="@number">@number</option>
+                    }
+                </select>
+            </div>
+            <!--<a class="btn btn-primary" asp-controller="Home" asp-action="FilterIndex" asp-route-filters="@Model.LastDateFilter">Filter</a>-->
+            <input type="submit" value="Filter" class="btn btn-primary" />
+        </form>
+        @if (Model.History?.Any() != true)
+        {
+            <p>
+                No data
+            </p>
+        }
+        else
+        {
+            //<table style="width:100%">
+            <table class="table caption-top">
+                <tr>
+                    <th width="10%">@nameof(Order.Number)</th>
+                    <th width="20%">@nameof(Order.Provider)</th>
+                    <th>@nameof(Order.Date)</th>
+                    <th width="10%">Items count</th>
+                    <th width="5%"></th>
+                </tr>
+                <tr>
+                    <td colspan="5">
+                        <a class="btn btn-primary" asp-controller="Edit" asp-action="EditOrder" asp-area="">Create order</a>
+                    </td>
+                </tr>
+                @foreach (var data in Model.History)
+                {
+                    <tr>
+                        <td>
+                            @data.Number
+                        </td>
+                        <td>
+                            @data.Provider
+                        </td>
+                        <td>
+                            @data.Date
+                        </td>
+                        <td>
+                            @data.Items.Count()
+                        </td>
+                        <td border>
+                            <a class="btn btn-primary mx-2" asp-controller="Edit" asp-action="EditOrder" asp-route-orderId="@data.Id">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </table>
+        }
+    }
 </div>

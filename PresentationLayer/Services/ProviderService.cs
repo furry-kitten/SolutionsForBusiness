@@ -1,27 +1,31 @@
 ﻿using Infrastructure.DataBase.Models;
 using Infrastructure.Repositories;
+using Infrastructure.Utils;
 using PresentationLayer.Enums;
 using PresentationLayer.Extensions;
-using PresentationLayer.Utils;
 using POrder = PresentationLayer.Models.Order;
 using PProvider = PresentationLayer.Models.Provider;
-using PItem = PresentationLayer.Models.OrderItem;
+using PItem = PresentationLayer.Models.Item;
 
 namespace PresentationLayer.Services
 {
-    public class ProviderService : BaseService<PProvider>
+    public class ProviderService : BaseService<Provider, PProvider>, IProviderService
     {
-        private readonly ProviderRepository _providerRepository;
+        private readonly IProviderRepository _providerRepository;
 
-        public ProviderService(ProviderRepository providerRepository) =>
+        public ProviderService(IProviderRepository providerRepository) =>
             _providerRepository = providerRepository;
 
         //public static ProviderWorker Instance { get; } = new();
 
         public async Task<PProvider> Create(string name)
         {
-            var existsProvider = _providerRepository.Get(provider => string.IsNullOrWhiteSpace(provider.Name) == false &&
-                                                        provider.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase))
+            var existsProvider = _providerRepository.Get<Provider>(provider =>
+                                                        string.IsNullOrWhiteSpace(provider.Name) ==
+                                                        false &&
+                                                        provider.Name.Equals(name,
+                                                            StringComparison
+                                                                .CurrentCultureIgnoreCase))
                                                     .FirstOrDefault();
 
             if (existsProvider is not null)
@@ -29,38 +33,44 @@ namespace PresentationLayer.Services
                 return existsProvider.Convert();
             }
 
-            return await Save(new PProvider
+            return Save(new PProvider
             {
                 Name = name,
                 State = ModelState.Added
             });
         }
 
-        public List<PProvider> Get() =>
-            _providerRepository.Get().Select(Converter.Convert).ToList();
+        public List<PProvider> Get() => _providerRepository.Get().Convert().ToList();
 
-        public override PProvider[] GetByFilter(DataFilter<PProvider> filter)
-        {
-            return _providerRepository.Get(provider => filter.Filter(provider.Convert()))
-                                      .Select(Converter.Convert)
-                                      .ToArray();
-        }
-        public override async Task Add(PProvider model)
+        public override PProvider? Get(int id) => _providerRepository.Get(id)?.Convert();
+
+        public PProvider? GetByName(string name) =>
+            _providerRepository.GetByName(name)?.Convert();
+
+        public override List<PProvider>
+            GetByFilter<TEntityType>(DataFilter<Provider, TEntityType> filter) =>
+            _providerRepository.Get(filter).Convert().ToList();
+
+        public override async void Add(PProvider model)
         {
             await _providerRepository.AddAsync(model.Convert());
         }
 
-        public override async Task Update(PProvider order)
+        public override void Update(PProvider order)
         {
-            await _providerRepository.UpdateAsync(order.Convert());
+            _providerRepository.Update(order.Convert());
         }
 
-        public override async Task Remove(PProvider model)
+        public override async void Remove(PProvider model)
         {
             await _providerRepository.Remove(new Provider
             {
                 Id = model.Id
             });
+        }
+        public override List<PProvider> GetFullByFilter<TEntityType>(DataFilter<Provider, TEntityType> filter)
+        {
+            return _providerRepository.Get(filter).Convert().ToList();
         }
     }
 }

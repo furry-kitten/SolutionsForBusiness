@@ -2,11 +2,12 @@
 using Infrastructure.DataBase;
 using Infrastructure.DataBase.Models;
 using Infrastructure.Extensions;
+using Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class BaseRepository<TEntity>
+    public abstract class BaseRepository<TEntity>
         where TEntity : BaseDbModel, new()
     {
         protected readonly EfCoreContext Context;
@@ -19,18 +20,22 @@ namespace Infrastructure.Repositories
             WriteEntity = Context.Set<TEntity>();
         }
 
-        public virtual TEntity? Get(int id) => Context.Find<TEntity>(id);
+        public virtual TEntity? Get(int id) =>
+            WriteEntity.AsNoTracking().FirstOrDefault(model => model.Id == id);
 
-        public IEnumerable<TEntity> Get()
+        public virtual IEnumerable<TEntity> Get()
         {
-            return WriteEntity;
+            return WriteEntity.AsNoTracking();
         }
 
-        public virtual IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> predicate) =>
-            WriteEntity.Where(predicate);
+        public virtual IEnumerable<TEntity> Get<TType>(DataFilter<TEntity, TType> filter) =>
+            WriteEntity.AsNoTracking().AsEnumerable().Where(filter.Filter);
 
-        public virtual async Task<TEntity?> GetAsync(int id) =>
-            await Context.FindAsync<TEntity>(id);
+        public virtual IEnumerable<TEntity> Get<TType>(Expression<Func<TEntity, bool>> predicate) =>
+            WriteEntity.AsNoTracking().Where(predicate);
+
+        public virtual TEntity? GetAsync(int id) =>
+            Context.Find<TEntity>(id);
 
         public virtual TEntity Add(TEntity entity)
         {
@@ -63,14 +68,20 @@ namespace Infrastructure.Repositories
 
         public virtual void Update(TEntity entity)
         {
-            Context.Entry(entity).State = EntityState.Modified;
+            var entityEntry = Context.Entry(entity);
+            if (entityEntry.State != EntityState.Modified)
+            {
+                entityEntry.State = EntityState.Modified;
+            }
+
             Context.SaveChanges();
             Context.Detach(entity);
         }
 
         public virtual async Task UpdateAsync(TEntity entity)
         {
-            Context.Entry(entity).State = EntityState.Modified;
+            var entityEntry = Context.Entry(entity);
+            entityEntry.State = EntityState.Modified;
             await Context.SaveChangesAsync();
             Context.Detach(entity);
         }
@@ -105,5 +116,7 @@ namespace Infrastructure.Repositories
             Context.DetachAllEntries(entities);
             return count;
         }
+
+        //public abstract TEntity GetByFilter(Expression<Func<Order, bool>> predicate);
     }
 }

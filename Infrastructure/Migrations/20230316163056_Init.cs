@@ -12,7 +12,7 @@ namespace Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Providers",
+                name: "Provider",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -21,7 +21,7 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Providers", x => x.Id);
+                    table.PrimaryKey("PK_Provider", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -38,15 +38,15 @@ namespace Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Order", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Order_Providers_ProviderId",
+                        name: "FK_Order_Provider_ProviderId",
                         column: x => x.ProviderId,
-                        principalTable: "Providers",
+                        principalTable: "Provider",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Items",
+                name: "OrderItem",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -58,18 +58,13 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Items", x => x.Id);
+                    table.PrimaryKey("PK_OrderItem", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Items_Order_OrderId",
+                        name: "FK_OrderItem_Order_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Order",
                         principalColumn: "Id");
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Items_OrderId",
-                table: "Items",
-                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_ProviderId",
@@ -82,19 +77,24 @@ namespace Infrastructure.Migrations
                 columns: new[] { "Number", "ProviderId" },
                 unique: true,
                 filter: "[Number] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItem_OrderId",
+                table: "OrderItem",
+                column: "OrderId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Items");
+                name: "OrderItem");
 
             migrationBuilder.DropTable(
                 name: "Order");
 
             migrationBuilder.DropTable(
-                name: "Providers");
+                name: "Provider");
         }
     }
 }

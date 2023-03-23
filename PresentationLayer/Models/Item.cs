@@ -1,12 +1,11 @@
-﻿namespace Infrastructure.DataBase.Models
+﻿namespace PresentationLayer.Models
 {
-    public class OrderItem : BaseDbModel
+    public class Item : BaseModel
     {
         public string? Name { get; set; }
         public decimal? Quantity { get; set; }
         public string? Unit { get; set; }
+        public string? OrderNumber { get; set; }
         public int? OrderId { get; set; }
-
-        public Order? Order { get; set; }
     }
 }

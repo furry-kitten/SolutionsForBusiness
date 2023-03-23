@@ -1,0 +1,59 @@
+﻿@model PresentationLayer.ViewModels.EditOrderViewModel
+
+<form asp-action="SaveOrder" asp-route-orderId="@Model.OrderId">
+    <div class="form-group">
+        <label asp-for="Number"></label>
+        <input asp-for="Number" />
+    </div>
+    <div class="form-group">
+        <label id="Providers" asp-for="ProviderList">Providers</label>
+        <select class="form-select" name="@nameof(EditOrderViewModel.SelectedProviderId)" asp-for="SelectedProviderId">
+            @{
+                foreach (var provider in Model.ProviderList)
+                {
+                    <option value="@provider.Id">@provider.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label asp-for="Date"></label>
+        <input name="@nameof(Model.Date)" asp-for="Date" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Items"></label>
+        <table class="table caption-top">
+            <tr>
+                <th width="10%">@nameof(Item.Name)</th>
+                <th width="20%">@nameof(Item.Quantity)</th>
+                <th>@nameof(Item.Unit)</th>
+                <th width="5%"></th>
+            </tr>
+            <tr>
+                <td colspan="5">
+                    <button type="submit" class="btn btn-primary" asp-controller="Edit" asp-action="CreateItem" asp-route-orderId="@Model.OrderId">Create item</button>
+                </td>
+            </tr>
+            @foreach (var data in Model.Items)
+            {
+                <tr>
+                    <td>
+                        @data.Name
+                    </td>
+                    <td>
+                        @data.Quantity
+                    </td>
+                    <td>
+                        @data.Unit
+                    </td>
+                    <td border>
+                        <a class="btn btn-primary mx-2" asp-controller="Edit" asp-action="EditItem" asp-route-itemId="@data.Id">Edit</a>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

@@ -1,0 +1,17 @@
+﻿@model EditItemViewModel
+
+<form asp-action="SaveItem" asp-route-orderId="@Model.OrderId" asp-route-itemId="@Model.ItemId">
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Unit"></label>
+        <input name="@nameof(Model.Unit)" asp-for="Unit" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Quantity"></label>
+        <input name="@nameof(Model.Quantity)" asp-for="Quantity" />
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

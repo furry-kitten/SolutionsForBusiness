@@ -1,25 +1,25 @@
 ﻿using Infrastructure.DataBase.Models;
 using Infrastructure.Repositories;
+using Infrastructure.Utils;
 using PresentationLayer.Extensions;
-using PresentationLayer.Utils;
 using POrder = PresentationLayer.Models.Order;
 using PProvider = PresentationLayer.Models.Provider;
-using PItem = PresentationLayer.Models.OrderItem;
+using PItem = PresentationLayer.Models.Item;
 
 namespace PresentationLayer.Services
 {
-    public class ItemService : BaseService<PItem>
+    public class ItemService : BaseService<Item, PItem>, IItemService
     {
-        private readonly ItemRepository _itemRepository;
-        private readonly OrderRepository _orderRepository;
+        private readonly IItemRepository _itemRepository;
+        private readonly IOrderRepository _orderRepository;
 
-        public ItemService(ItemRepository itemRepository, OrderRepository orderRepository)
+        public ItemService(IItemRepository itemRepository, IOrderRepository orderRepository)
         {
             _itemRepository = itemRepository;
             _orderRepository = orderRepository;
         }
 
-        public override async Task<PItem> Save(PItem model)
+        public override PItem Save(PItem model)
         {
             if (string.IsNullOrWhiteSpace(model.Unit))
             {
@@ -31,42 +31,52 @@ namespace PresentationLayer.Services
                 throw new ArgumentException($"Please fill the {nameof(PItem.Quantity)}");
             }
 
-            return await base.Save(model);
+            return base.Save(model);
         }
 
-        public override PItem[] GetByFilter(DataFilter<PItem> filter)
-        {
-            return _itemRepository.Get(item => filter.Filter(item.Convert()))
-                                  .Select(Converter.Convert)
-                                  .ToArray();
-        }
-        public override async Task Add(PItem model)
+        public override List<PItem>
+            GetByFilter<TEntityType>(DataFilter<Item, TEntityType> filter) =>
+            _itemRepository.Get(filter).Convert().ToList();
+        public override void Add(PItem model)
         {
             if (model.OrderId is null)
             {
                 throw new ArgumentException("Item must by attached to the order");
             }
 
-            var orderEntity = await _orderRepository.GetAsync(model.OrderId.Value);
-            await _itemRepository.AddAsync(model.Convert(orderEntity));
+            if (model.Name!.Equals(model.OrderNumber))
+            {
+                throw new ArgumentException("Item name cannot be equals order number");
+            }
+
+            var orderEntity = _orderRepository.GetFullInfo(model.OrderId.Value);
+            var convert = model.Convert(orderEntity);
+            _itemRepository.Add(convert);
         }
 
-        public override async Task Update(PItem model)
+        public override void Update(PItem model)
         {
-            await _itemRepository.UpdateAsync(model.Convert(null));
+            var entity = model.Convert(null);
+            _itemRepository.Update(entity);
         }
 
-        public override async Task Remove(PItem model)
+        public override void Remove(PItem model)
         {
-            await _itemRepository.Remove(new OrderItem
+            _itemRepository.Remove(new Item
             {
                 Id = model.Id
             });
         }
 
+        public override PItem? Get(int id) => _itemRepository.Get(id)?.Convert();
+
+        public override List<PItem>
+            GetFullByFilter<TEntityType>(DataFilter<Item, TEntityType> filter) =>
+            _itemRepository.GetFullInfo(filter).Convert().ToList();
+
         public async Task RemoveRange(IEnumerable<PItem> items)
         {
-            await _itemRepository.RemoveRangeAsync(items.Select(item => new OrderItem
+            await _itemRepository.RemoveRangeAsync(items.Select(item => new Item
             {
                 Id = item.Id
             }));

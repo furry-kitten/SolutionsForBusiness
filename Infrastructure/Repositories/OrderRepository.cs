@@ -1,11 +1,11 @@
-﻿using System.Linq.Expressions;
-using Infrastructure.DataBase;
+﻿using Infrastructure.DataBase;
 using Infrastructure.DataBase.Models;
+using Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class OrderRepository : BaseRepository<Order>
+    public class OrderRepository : BaseRepository<Order>, IOrderRepository
     {
         public OrderRepository(EfCoreContext context) : base(context) { }
 
@@ -19,29 +19,59 @@ namespace Infrastructure.Repositories
                 throw new ArgumentException("This order is already exists");
             }
 
-            return base.Add(entity);
+            return base.Add(new Order
+            {
+                Provider = entity.Provider,
+                Number = entity.Number,
+                Date = entity.Date,
+                ProviderId = entity.ProviderId,
+                Items = entity.Items
+            });
         }
 
-        public async Task<Order?> GetFullInfo(int id) =>
-            await WriteEntity.Include(order => order.Provider)
-                         .Include(order => order.Items)
-                         .FirstOrDefaultAsync(order => order.Id == id);
-
-        public IEnumerable<Order?> GetFullInfo(Expression<Func<Order, bool>> predicate) =>
+        public Order? GetFullInfo(int id) =>
             WriteEntity.Include(order => order.Provider)
-                         .Include(order => order.Items).Where(predicate);
+                       .Include(order => order.Items)
+                       .AsNoTracking()
+                       .FirstOrDefault(order => order.Id == id);
 
-        public async Task<Order?> GetByNumberAndProvider(string number, int providerId)
+        public override void Update(Order entity)
         {
-            return await WriteEntity.Include(order => order.Provider)
-                                    .Include(order => order.Items)
-                                    .Where(order =>
-                                        number.Equals(order.Number) &&
-                                        order.ProviderId == providerId)
-                                    .FirstOrDefaultAsync();
+            foreach (var item in entity.Items)
+            {
+                Context.Attach(item);
+            }
+
+            base.Update(entity);
         }
 
-        public IEnumerable<Order> GetByNumberAndProvider(Expression<Func<Order, bool>> predicate) =>
-            WriteEntity.Include(order => order.Provider).Where(predicate);
+        public IEnumerable<Order> GetFullInfo<TType>(DataFilter<Order, TType> filter) =>
+            WriteEntity.Include(order => order.Provider)
+                       .Include(order => order.Items)
+                       .AsNoTracking()
+                       .AsEnumerable()
+                       .Where(filter.Filter);
+
+        public Order? GetByNumberAndProvider(string number, int providerId)
+        {
+            return WriteEntity.Include(order => order.Provider)
+                              .Include(order => order.Items)
+                              .AsNoTracking()
+                              .FirstOrDefault(order =>
+                                  number.Equals(order.Number) && order.ProviderId == providerId);
+        }
+
+        public IEnumerable<Order> GetByFilter<TType>(DataFilter<Order, TType> filter) =>
+            WriteEntity.Include(order => order.Provider)
+                       .AsNoTracking()
+                       .AsEnumerable()
+                       .Where(filter.Filter);
+
+        public IEnumerable<Order> GetFullInfo(Func<Order, bool> predicate) =>
+            WriteEntity.Include(order => order.Provider)
+                       .Include(order => order.Items)
+                       .AsNoTracking()
+                       .AsEnumerable()
+                       .Where(predicate);
     }
 }

@@ -4,7 +4,7 @@ namespace PresentationLayer.Models
 {
     public abstract class BaseModel
     {
-        internal int Id { get; init; } = -1;
+        public int Id { get; init; }
         internal ModelState State { get; set; } = ModelState.None;
     }
 }

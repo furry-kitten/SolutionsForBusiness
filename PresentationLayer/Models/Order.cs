@@ -5,6 +5,6 @@
         public string? Number { get; set; }
         public DateTime? Date { get; set; }
         public string? Provider { get; set; }
-        public IEnumerable<OrderItem>? Items { get; set; }
+        public IEnumerable<Item>? Items { get; set; }
     }
 }

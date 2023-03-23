@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class ProviderRepository : BaseRepository<Provider>
+    public class ProviderRepository : BaseRepository<Provider>, IProviderRepository
     {
         public ProviderRepository(EfCoreContext context) : base(context) { }
 

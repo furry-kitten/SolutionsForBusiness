@@ -2,7 +2,7 @@
 using PresentationLayer.Enums;
 using POrder = PresentationLayer.Models.Order;
 using PProvider = PresentationLayer.Models.Provider;
-using PItem = PresentationLayer.Models.OrderItem;
+using PItem = PresentationLayer.Models.Item;
 
 namespace PresentationLayer.Extensions
 {
@@ -13,7 +13,7 @@ namespace PresentationLayer.Extensions
             {
                 Id = entity.Id,
                 Provider = entity.Provider?.Name,
-                Items = entity.Items?.Select(Convert),
+                Items = entity.Items?.Convert(),
                 Date = entity.Date,
                 Number = entity.Number,
                 State = ModelState.None
@@ -23,51 +23,103 @@ namespace PresentationLayer.Extensions
         {
             var order = new Order
             {
-                Id = entity.State == ModelState.None ? 0 : entity.Id,
                 Provider = provider,
                 Date = entity.Date ?? DateTime.UtcNow,
-                Number = entity.Number
+                Number = entity.Number,
+                ProviderId = provider?.Id
             };
 
-            order.Items = entity.Items?.Select(item => Convert(item, order)).ToList();
+            if(entity.Id > 0 )
+            {
+                order.Id = entity.Id;
+            }
+
+            order.Items = entity.Items?.Convert(order).ToList();
             return order;
         }
 
-        internal static PItem Convert(this OrderItem entity) =>
+        internal static PItem Convert(this Item entity) =>
             new()
             {
                 Id = entity.Id,
-                Order = entity.Order?.Number,
+                OrderNumber = entity.Order?.Number,
                 Name = entity.Name,
                 Quantity = entity.Quantity,
                 Unit = entity.Unit,
+                OrderId = entity.OrderId,
                 State = ModelState.None
             };
 
-        internal static OrderItem Convert(this PItem entity, Order? order) =>
-            new()
+        internal static Item Convert(this PItem entity, Order? order)
+        {
+            Item convert = new()
             {
-                Id = entity.State == ModelState.None ? 0 : entity.Id,
-                Order = order,
                 Name = entity.Name,
                 Quantity = entity.Quantity,
-                Unit = entity.Unit
+                Unit = entity.Unit,
+                OrderId = entity.OrderId
             };
+
+            if (entity.Id > 0)
+            {
+                convert.Id = entity.Id;
+            }
+
+            return convert;
+        }
 
         internal static PProvider Convert(this Provider entity) =>
             new()
             {
                 Id = entity.Id,
                 Name = entity.Name,
-                Orders = entity.Orders?.Select(Convert),
+                Orders = entity.Orders?.Convert(),
                 State = ModelState.None
             };
 
-        internal static Provider Convert(this PProvider entity) =>
-            new()
+        internal static Provider Convert(this PProvider entity)
+        {
+            Provider provider = new()
             {
-                Id = entity.State == ModelState.None ? 0 : entity.Id,
                 Name = entity.Name
             };
+
+            if (entity.Id > 0)
+            {
+                provider.Id = entity.Id;
+            }
+
+            return provider;
+        }
+
+        internal static IEnumerable<PProvider> Convert(this IEnumerable<Provider> enumerable)
+        {
+            return enumerable.Select(Convert);
+        }
+
+        internal static IEnumerable<Provider> Convert(this IEnumerable<PProvider> enumerable)
+        {
+            return enumerable.Select(Convert);
+        }
+
+        internal static IEnumerable<POrder> Convert(this IEnumerable<Order> enumerable)
+        {
+            return enumerable.Select(Convert);
+        }
+
+        internal static IEnumerable<Order> Convert(this IEnumerable<POrder> enumerable, Provider provider)
+        {
+            return enumerable.Select(order => order.Convert(provider));
+        }
+
+        internal static IEnumerable<PItem> Convert(this IEnumerable<Item> enumerable)
+        {
+            return enumerable.Select(Convert);
+        }
+
+        internal static IEnumerable<Item> Convert(this IEnumerable<PItem> enumerable, Order order)
+        {
+            return enumerable.Select(item => item.Convert(order));
+        }
     }
 }

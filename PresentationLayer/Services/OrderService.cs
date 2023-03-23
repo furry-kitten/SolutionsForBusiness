@@ -1,28 +1,27 @@
 ﻿using Infrastructure.DataBase.Models;
 using Infrastructure.Repositories;
+using Infrastructure.Utils;
 using PresentationLayer.Extensions;
-using PresentationLayer.Utils;
 using POrder = PresentationLayer.Models.Order;
 using PProvider = PresentationLayer.Models.Provider;
-using PItem = PresentationLayer.Models.OrderItem;
-using PresentationLayer.Enums;
+using PItem = PresentationLayer.Models.Item;
 
 namespace PresentationLayer.Services
 {
-    public class OrderService : BaseService<POrder>
+    public class OrderService : BaseService<Order, POrder>, IOrderService
     {
-        private readonly OrderRepository _orderRepository;
-        private readonly ProviderRepository _providerRepository;
+        private readonly IOrderRepository _orderRepository;
+        private readonly IProviderRepository _providerRepository;
 
-        public OrderService(OrderRepository orderRepository, ProviderRepository providerRepository)
+        public OrderService(IOrderRepository orderRepository, IProviderRepository providerRepository)
         {
             _orderRepository = orderRepository;
             _providerRepository = providerRepository;
         }
 
-        public override async Task<POrder> Save(POrder model)
+        public override POrder Save(POrder model)
         {
-            //var provider = await _providerRepository.GetByName(model.Provider);
+            var provider = _providerRepository.GetByName(model.Provider);
             //if (provider == null)
             //{
             //    throw new ArgumentException($"There is no provider with name {model.Provider}");
@@ -33,17 +32,32 @@ namespace PresentationLayer.Services
             //    throw new ArgumentException("Order must contain at least one item");
             //}
 
-            return await base.Save(model);
+            return base.Save(model);
         }
 
-        public override POrder[] GetByFilter(DataFilter<POrder> filter)
-        {
-            return _orderRepository.GetByNumberAndProvider(order => filter.Filter(order.Convert()))
-                                   .Select(Converter.Convert)
-                                   .ToArray();
-        }
+        public override List<POrder> GetFullByFilter<TEntityType>(
+            DataFilter<Order, TEntityType> filter) =>
+            _orderRepository.GetFullInfo(filter)
+                            //.Select(order =>
+                            //{
+                            //    order.Provider = new Provider(){Name = "PPPPPP"};
+                            //    return order;
+                            //})
+                            .Convert()
+                            .ToList();
 
-        public override async Task Add(POrder model)
+        public List<POrder> GetFullByFilter(Func<Order, bool> predicate) =>
+            _orderRepository.GetFullInfo(predicate)
+                            .Convert()
+                            .ToList();
+
+        public POrder? GetFull(int id) => _orderRepository.GetFullInfo(id)?.Convert();
+
+        public override List<POrder>
+            GetByFilter<TEntityType>(DataFilter<Order, TEntityType> filter) =>
+            _orderRepository.GetByFilter(filter).Convert().ToList();
+
+        public override void Add(POrder model)
         {
             var provider = _providerRepository.GetByName(model.Provider);
             provider ??= new Provider
@@ -55,19 +69,20 @@ namespace PresentationLayer.Services
             _orderRepository.Add(entity);
         }
 
-        public override async Task Update(POrder model)
+        public override void Update(POrder model)
         {
-            await _orderRepository.UpdateAsync(model.Convert(null));
+            var provider = _providerRepository.GetByName(model.Provider);
+            var entity = model.Convert(provider);
+            _orderRepository.Update(entity);
         }
 
-        public override async Task Remove(POrder pOrder)
+        public override void Remove(POrder pOrder)
         {
             var provider = _providerRepository.GetByName(pOrder.Provider);
-            var order = await _orderRepository.GetByNumberAndProvider(pOrder.Number!, provider!.Id);
-            await _orderRepository.Remove(order!);
+            var order = _orderRepository.GetByNumberAndProvider(pOrder.Number!, provider!.Id);
+            _orderRepository.Remove(order!);
         }
-
-        public async Task<POrder> Create(string? number, string provider, IEnumerable<PItem> items)
+        public POrder Create(string? number, string provider, IEnumerable<PItem> items)
         {
             if (string.IsNullOrWhiteSpace(number))
             {
@@ -79,10 +94,13 @@ namespace PresentationLayer.Services
             order.Items = items;
             order.Provider = provider;
 
-            return await Save(order);
+            return Save(order);
         }
 
-        public List<IEnumerable<Order>> Get() => _orderRepository.Get().Paginate().ToList();
+        public override POrder? Get(int id) => _orderRepository.Get(id)?.Convert();
+
+        public IEnumerable<POrder> Get() =>
+            _orderRepository.Get().Convert().ToList();
 
         public override POrder GetDefaultModel()
         {

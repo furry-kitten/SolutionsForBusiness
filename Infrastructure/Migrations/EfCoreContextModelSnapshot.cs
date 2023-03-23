@@ -17,10 +17,38 @@ namespace Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.3")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Infrastructure.DataBase.Models.Item", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("Unit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItem", (string)null);
+                });
 
             modelBuilder.Entity("Infrastructure.DataBase.Models.Order", b =>
                 {
@@ -47,35 +75,7 @@ namespace Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[Number] IS NOT NULL");
 
-                    b.ToTable("Order");
-                });
-
-            modelBuilder.Entity("Infrastructure.DataBase.Models.OrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("Quantity")
-                        .HasPrecision(18, 3)
-                        .HasColumnType("decimal(18,3)");
-
-                    b.Property<string>("Unit")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("Items");
+                    b.ToTable("Order", (string)null);
                 });
 
             modelBuilder.Entity("Infrastructure.DataBase.Models.Provider", b =>
@@ -91,7 +91,16 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Providers");
+                    b.ToTable("Provider", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.DataBase.Models.Item", b =>
+                {
+                    b.HasOne("Infrastructure.DataBase.Models.Order", "Order")
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Infrastructure.DataBase.Models.Order", b =>
@@ -103,15 +112,6 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Provider");
-                });
-
-            modelBuilder.Entity("Infrastructure.DataBase.Models.OrderItem", b =>
-                {
-                    b.HasOne("Infrastructure.DataBase.Models.Order", "Order")
-                        .WithMany("Items")
-                        .HasForeignKey("OrderId");
-
-                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Infrastructure.DataBase.Models.Order", b =>

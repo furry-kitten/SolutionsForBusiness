@@ -4,9 +4,9 @@
     {
         public string? Number { get; set; }
         public DateTime? Date { get; set; }
-        public int ProviderId { get; set; }
+        public int? ProviderId { get; set; }
 
         public Provider? Provider { get; set; }
-        public ICollection<OrderItem>? Items { get; set; }
+        public ICollection<Item>? Items { get; set; }
     }
 }
