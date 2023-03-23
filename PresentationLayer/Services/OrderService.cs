@@ -1,6 +1,7 @@
 ﻿using Infrastructure.DataBase.Models;
 using Infrastructure.Repositories;
 using Infrastructure.Utils;
+using PresentationLayer.Enums;
 using PresentationLayer.Extensions;
 using POrder = PresentationLayer.Models.Order;
 using PProvider = PresentationLayer.Models.Provider;
@@ -13,7 +14,8 @@ namespace PresentationLayer.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IProviderRepository _providerRepository;
 
-        public OrderService(IOrderRepository orderRepository, IProviderRepository providerRepository)
+        public OrderService(IOrderRepository orderRepository,
+            IProviderRepository providerRepository)
         {
             _orderRepository = orderRepository;
             _providerRepository = providerRepository;
@@ -22,15 +24,25 @@ namespace PresentationLayer.Services
         public override POrder Save(POrder model)
         {
             var provider = _providerRepository.GetByName(model.Provider);
-            //if (provider == null)
-            //{
-            //    throw new ArgumentException($"There is no provider with name {model.Provider}");
-            //}
+            if (provider == null)
+            {
+                throw new ArgumentException($"There is no provider with name {model.Provider}");
+            }
 
-            //if (!model.Items?.Any() != true)
-            //{
-            //    throw new ArgumentException("Order must contain at least one item");
-            //}
+            if (!model.Items?.Any() != true)
+            {
+                throw new ArgumentException("Order must contain at least one item");
+            }
+
+            if (model.Items.Any(item => item.Name.Equals(model.Number)))
+            {
+                throw new ArgumentException("Order number and order item name must be different");
+            }
+
+            if (model.State is ModelState.Added && _orderRepository.GetByNumberAndProvider(model.Number, provider.Id) != null)
+            {
+                throw new ArgumentException("Order duplication");
+            }
 
             return base.Save(model);
         }
@@ -47,9 +59,7 @@ namespace PresentationLayer.Services
                             .ToList();
 
         public List<POrder> GetFullByFilter(Func<Order, bool> predicate) =>
-            _orderRepository.GetFullInfo(predicate)
-                            .Convert()
-                            .ToList();
+            _orderRepository.GetFullInfo(predicate).Convert().ToList();
 
         public POrder? GetFull(int id) => _orderRepository.GetFullInfo(id)?.Convert();
 
@@ -99,8 +109,7 @@ namespace PresentationLayer.Services
 
         public override POrder? Get(int id) => _orderRepository.Get(id)?.Convert();
 
-        public IEnumerable<POrder> Get() =>
-            _orderRepository.Get().Convert().ToList();
+        public IEnumerable<POrder> Get() => _orderRepository.Get().Convert().ToList();
 
         public override POrder GetDefaultModel()
         {
