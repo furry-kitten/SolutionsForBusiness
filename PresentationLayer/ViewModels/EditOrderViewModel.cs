@@ -9,7 +9,7 @@ namespace PresentationLayer.ViewModels
 {
     public class EditOrderViewModel
     {
-        public string Number { get; set; }
+        public string? Number { get; set; }
         public DateTime? Date { get; set; }
         public int SelectedProviderId { get; set; }
         public List<Provider> ProviderList { get; set; }

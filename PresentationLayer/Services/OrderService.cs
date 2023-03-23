@@ -16,7 +16,8 @@ namespace PresentationLayer.Services
         private readonly IItemRepository _itemRepository;
 
         public OrderService(IOrderRepository orderRepository,
-            IProviderRepository providerRepository, IItemRepository itemRepository)
+            IProviderRepository providerRepository,
+            IItemRepository itemRepository)
         {
             _orderRepository = orderRepository;
             _providerRepository = providerRepository;
@@ -36,15 +37,9 @@ namespace PresentationLayer.Services
                 throw new ArgumentException($"There is no provider with name {model.Provider}");
             }
 
-            if (!model.Items?.Any() != true)
+            if (model.Items?.Any(item => item.Name.Equals(model.Number)) == true)
             {
-                throw new ArgumentException("Order must contain at least one item");
-            }
-
-            if (model.Items.Any(item => item.Name.Equals(model.Number)))
-            {
-                throw new ArgumentException(
-                    "Order number and order item name must be different");
+                throw new ArgumentException("Order number and order item name must be different");
             }
 
             if (model.State is ModelState.Added &&
@@ -58,12 +53,13 @@ namespace PresentationLayer.Services
 
         public override List<POrder> GetFullByFilter<TEntityType>(
             DataFilter<Order, TEntityType> filter) =>
-            _orderRepository.GetFullInfo(filter)
-                            .Convert()
-                            .ToList();
+            _orderRepository.GetFullInfo(filter).Convert().ToList();
 
         public List<POrder> GetFullByFilter(Func<Order, bool> predicate) =>
             _orderRepository.GetFullInfo(predicate).Convert().ToList();
+
+        public POrder? GetByNumberAndProvider(string number, int providerId) =>
+            _orderRepository.GetByNumberAndProvider(number, providerId)?.Convert();
 
         public POrder? GetFull(int id) => _orderRepository.GetFullInfo(id)?.Convert();
 
@@ -80,6 +76,7 @@ namespace PresentationLayer.Services
             };
 
             var entity = model.Convert(provider);
+            entity.Provider = provider.Id > 0 ? null : provider;
             _orderRepository.Add(entity);
         }
 
@@ -94,11 +91,12 @@ namespace PresentationLayer.Services
         {
             var items = _itemRepository.Get(item => item.OrderId == pOrder.Id);
             _itemRepository.RemoveRange(items);
-            _orderRepository.Remove(new Order()
+            _orderRepository.Remove(new Order
             {
                 Id = pOrder.Id
             });
         }
+
         public POrder Create(string? number, string provider, IEnumerable<PItem> items)
         {
             if (string.IsNullOrWhiteSpace(number))

@@ -49,14 +49,13 @@ namespace PresentationLayer.Services
                 throw new ArgumentException("Item name cannot be equals order number");
             }
 
-            var orderEntity = _orderRepository.GetFullInfo(model.OrderId.Value);
-            var convert = model.Convert(orderEntity);
+            var convert = model.Convert();
             _itemRepository.Add(convert);
         }
 
         public override void Update(PItem model)
         {
-            var entity = model.Convert(null);
+            var entity = model.Convert();
             _itemRepository.Update(entity);
         }
 

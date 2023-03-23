@@ -23,7 +23,6 @@ namespace PresentationLayer.Extensions
         {
             var order = new Order
             {
-                Provider = provider,
                 Date = entity.Date ?? DateTime.UtcNow,
                 Number = entity.Number,
                 ProviderId = provider?.Id
@@ -34,7 +33,7 @@ namespace PresentationLayer.Extensions
                 order.Id = entity.Id;
             }
 
-            order.Items = entity.Items?.Convert(order).ToList();
+            order.Items = entity.Items?.Convert().ToList();
             return order;
         }
 
@@ -50,7 +49,7 @@ namespace PresentationLayer.Extensions
                 State = ModelState.None
             };
 
-        internal static Item Convert(this PItem entity, Order? order)
+        internal static Item Convert(this PItem entity)
         {
             Item convert = new()
             {
@@ -117,9 +116,9 @@ namespace PresentationLayer.Extensions
             return enumerable.Select(Convert);
         }
 
-        internal static IEnumerable<Item> Convert(this IEnumerable<PItem> enumerable, Order order)
+        internal static IEnumerable<Item> Convert(this IEnumerable<PItem> enumerable)
         {
-            return enumerable.Select(item => item.Convert(order));
+            return enumerable.Select(item => item.Convert());
         }
     }
 }

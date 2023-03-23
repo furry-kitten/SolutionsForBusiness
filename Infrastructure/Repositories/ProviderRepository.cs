@@ -15,9 +15,12 @@ namespace Infrastructure.Repositories
                 return null;
             }
 
-            var firstOrDefaultAsync = WriteEntity.AsNoTracking().FirstOrDefault(provider =>
-                string.IsNullOrWhiteSpace(provider.Name) == false &&
-                provider.Name.Equals(name) == true);
+            var firstOrDefaultAsync = WriteEntity.Include(provider => provider.Orders)
+                                                 .AsNoTracking()
+                                                 .FirstOrDefault(provider =>
+                                                     string.IsNullOrWhiteSpace(provider.Name) ==
+                                                     false &&
+                                                     provider.Name.Equals(name) == true);
 
             return firstOrDefaultAsync;
         }

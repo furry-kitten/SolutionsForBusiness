@@ -19,14 +19,7 @@ namespace Infrastructure.Repositories
                 throw new ArgumentException("This order is already exists");
             }
 
-            return base.Add(new Order
-            {
-                Provider = entity.Provider,
-                Number = entity.Number,
-                Date = entity.Date,
-                ProviderId = entity.ProviderId,
-                Items = entity.Items
-            });
+            return base.Add(entity);
         }
 
         public Order? GetFullInfo(int id) =>
@@ -37,9 +30,12 @@ namespace Infrastructure.Repositories
 
         public override void Update(Order entity)
         {
-            foreach (var item in entity.Items)
+            if (entity.Items != null)
             {
-                Context.Attach(item);
+                foreach (var item in entity.Items)
+                {
+                    Context.Attach(item);
+                }
             }
 
             base.Update(entity);

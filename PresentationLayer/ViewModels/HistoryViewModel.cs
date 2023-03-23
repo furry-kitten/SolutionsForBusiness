@@ -17,10 +17,10 @@ namespace PresentationLayer.ViewModels
         [DataType(DataType.Date)]
         public DateTime LastDateFilter { get; set; }
 
-        public List<int> ProvidersIdFilter { get; set; }
+        public List<int>? ProvidersIdFilter { get; set; }
 
-        public List<string> NumberFilter { get; set; }
-        public List<string?> AllNumbers { get; set; }
+        public List<string>? NumberFilter { get; set; }
+        public List<string?>? AllNumbers { get; set; }
 
         #endregion
     }
